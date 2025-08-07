@@ -31,25 +31,37 @@ function _M.WriteMovieInfo()
   end
 
   local movie_info = cjson.decode(data)
-  if (movie_info["movie_id"] == nil or movie_info["title"] == nil or
+  if (movie_info["movie_id"] == nil or movie_info["title"] == nil--[[  or
       movie_info["casts"] == nil or movie_info["plot_id"] == nil or
       movie_info["thumbnail_ids"] == nil or movie_info["photo_ids"] == nil or
       movie_info["video_ids"] == nil or movie_info["avg_rating"] == nil or
-      movie_info["num_rating"] == nil) then
+      movie_info["num_rating"] == nil ]]) then
     ngx.status = ngx.HTTP_BAD_REQUEST
     ngx.say("Incomplete arguments")
     ngx.log(ngx.ERR, "Incomplete arguments")
     ngx.exit(ngx.HTTP_BAD_REQUEST)
   end
 
+  movie_info["plot_id"] = "plot_123"
+  movie_info["thumbnail_ids"] = { "thumb1", "thumb2" }
+  movie_info["photo_ids"] = { "photo1", "photo2" }
+  movie_info["video_ids"] = { "video1", "video2" }
+  movie_info["avg_rating"] = 5
+  movie_info["num_rating"] = 123
+
+  movie_info["casts"] = {
+    { charactor = "Hero", cast_id = "cast_1", cast_info_id = "info_1" },
+    { charactor = "Villain", cast_id = "cast_2", cast_info_id = "info_2" }
+  }
+
   local casts = {}
-  for _,cast in ipairs(movie_info["casts"]) do
+  --[[ for _,cast in ipairs(movie_info["casts"]) do
     local new_cast = Cast:new{}
     new_cast["charactor"]=cast["charactor"]
     new_cast["cast_id"]=cast["cast_id"]
     new_cast["cast_info_id"]=cast["cast_info_id"]
     table.insert(casts, new_cast)
-  end
+  end ]]
 
 
   local client = GenericObjectPool:connection(MovieInfoServiceClient, "movie-info-service" .. k8s_suffix , 9090)
@@ -57,7 +69,7 @@ function _M.WriteMovieInfo()
       casts, movie_info["plot_id"], movie_info["thumbnail_ids"],
       movie_info["photo_ids"], movie_info["video_ids"], tostring(movie_info["avg_rating"]),
       movie_info["num_rating"], carrier)
-  ngx.say(movie_info["avg_rating"])
+  ngx.say("successfully wrote movie info (movie_id=" .. movie_info["movie_id"] .. ", title=" .. movie_info["title"] .. ")")
   GenericObjectPool:returnConnection(client)
 
 end

@@ -17,12 +17,16 @@ services:
     entrypoint: UniqueIdService
 
   movie-id-service:
-    image: yg397/media-microservices
+    image: mafaldacf/media-microservices
     hostname: movie-id-service
 #    ports:
 #      - 10002:9090
     restart: always
     entrypoint: MovieIdService
+    environment:
+      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY
+      - AWS_REGION
 
   movie-id-mongodb:
     image: mongo:4.4.6
